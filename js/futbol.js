@@ -28,6 +28,8 @@ var upPressed = false;
 var downPressed = false;
 var leftPressed = false;
 var rightPressed = false;
+var spacePressed = false;
+var tiro = false;
 
 // Acciones
 init();
@@ -49,14 +51,14 @@ function init()
     scene.background = new THREE.Color(0.5,0.5,0.5);
 
     // Instanciar la camara con orbir controls
-    camera = new THREE.PerspectiveCamera( 75, ar, 0.1, 2000 );
-    camera.position.set(0.5, 500, 500);
-    camera.lookAt(0,0,0);
+    camera = new THREE.PerspectiveCamera( 750, ar, 0.1, 2000 );
+    camera.position.set(-1300, 1000, 1200);
+    camera.lookAt(1000,0,0);
 
     cameraControl = new OrbitControls(camera, renderer.domElement);
     cameraControl.target.set(0,0,0);
     cameraControl.noKeys = true;
-    cameraControl.minDistance = 50;
+    cameraControl.minDistance = 10;
     cameraControl.maxDistance = 900;
 
     // Camaras ortograficas
@@ -273,17 +275,25 @@ function restart_positions(){
 
 function update_pelota(){
 
-    if (eje.position.x + 5 <= pelota.position.x <= eje.position.x - 5 && eje.position.z + 5 <= pelota.position.z <= eje.position.z - 5){
-        pelota.position.x += 1;
-        pelota.position.z += 1;
+    var s = 15
+    if (eje.position.x + s >= pelota.position.x && pelota.position.x >= eje.position.x - s && 
+        eje.position.z + s >= pelota.position.z && pelota.position.z >= eje.position.z - s) {
+        // calcular angulo de rebote
+        var angulo = Math.atan2(eje.position.z - pelota.position.z, eje.position.x - pelota.position.x);
+        // movimiento de la pelota
+        if (tiro) {
+            // tween para la pelota
+            var tween = new TWEEN.Tween(pelota.position)
+            .to({x: pelota.position.x - 500*Math.cos(angulo), z: pelota.position.z - 500*Math.sin(angulo)}, 2000)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .start();
+        } else {
+            pelota.position.x -= Math.cos(angulo) * 0.5;
+            pelota.position.z -= Math.sin(angulo) * 0.5;
+        }
+        
         console.log("Gol");
     }
-
-    // tween para la pelota
-    // var tween = new TWEEN.Tween(pelota.position)
-    // .to({x: 423, y: 5, z: 0}, 1000)
-    // .easing(TWEEN.Easing.Quadratic.InOut)
-    // .start();
 
     
 }
@@ -321,6 +331,10 @@ function keyDown(event) {
     else if (event.keyCode == 40 || event.keyCode == 65) {
         rightPressed = true;
     }
+    // detecto press space
+    if (event.keyCode == 32) {
+        spacePressed = true;
+    }
 }
 
 function keyUp(event) {
@@ -338,27 +352,39 @@ function keyUp(event) {
     if (event.keyCode == 40 || event.keyCode == 65) {
         rightPressed = false;
     }
+    // detecto press space
+    if (event.keyCode == 32) {
+        spacePressed = false;
+    }
 }
 
 function update() {
     if (leftPressed) {
-        if (eje.position.x + 5 < 500) {
-            eje.position.x += 5;
+        if (eje.position.x + 1 < 530) {
+            eje.position.x += 1;
         }
     }
     if (rightPressed)  {
-        if (eje.position.x - 5 > -500) {
-            eje.position.x -= 5;
+        if (eje.position.x - 1 > -530) {
+            eje.position.x -= 1;
         }
     }
     if (upPressed)  {
-        if (eje.position.z + 5 < 500) {
-            eje.position.z += 5;
+        if (eje.position.z + 1 < 400) {
+            eje.position.z += 1;
         }
     }
     if (downPressed) {
-        if (eje.position.z - 5 > -500) {
-            eje.position.z -= 5;
+        if (eje.position.z - 1 > -400) {
+            eje.position.z -= 1;
+        }
+    }
+    if (spacePressed) {
+        // animacion de gol
+        if (tiro) {
+            tiro = false;
+        } else {
+            tiro = true;
         }
     }
 
